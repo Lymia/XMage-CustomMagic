@@ -23,12 +23,11 @@
 package moe.lymia.custommagic
 
 import mage.cards.decks.Constructed
-import mage.server.CustomSetPackage
+import mage.server.ExtensionPackage
 import moe.lymia.custommagic.aenyr.Aenyr
 
-class CustomMagicPackage extends CustomSetPackage {
+class CustomMagicPackage extends ExtensionPackage {
   expansions.add(Aenyr)
-
   deckTypes.put("Custom Magic - Constructed", classOf[CustomMagicConstructed])
 }
 
