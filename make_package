@@ -1,0 +1,19 @@
+#!/bin/sh
+
+packageName=moe.lymia_custommagic
+
+rm -rf $packageName
+mkdir -v $packageName
+echo "moe.lymia.custommagic.CustomMagicPackage" > $packageName/entryPoint
+mkdir -v $packageName/packages
+
+copy_module() {
+  echo "Compiling $1 to $2"
+  sbt "project $1" package
+  jarfile="$(sbt "show $1/packageBin::artifactPath" | perl -pe 's/\e\[?.*?[\@-~]//g' | grep modules/$1 | sed 's/\[info\] //')"
+  cp -v "$jarfile" "$2"
+}
+
+copy_module xmage       $packageName/packages/
+copy_module custommagic $packageName/packages/
+cp -v ~/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.8.jar $packageName/packages/
