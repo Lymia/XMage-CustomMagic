@@ -25,25 +25,23 @@ package moe.lymia.custommagic.aenyr.cards
 import java.util.UUID
 
 import mage.MageInt
-import mage.abilities.effects.common.continuous.BoostTargetEffect
+import mage.abilities.effects.common.combat.CantBlockTargetEffect
+import mage.abilities.effects.common.continuous.{BoostControlledEffect, BoostTargetEffect}
 import mage.abilities.keyword.LifelinkAbility
 import mage.constants.{CardType, Duration, Rarity}
 import mage.target.common.TargetCreaturePermanent
-import moe.lymia.custommagic.aenyr.{Aenyr, VirtuosoAbility}
+import moe.lymia.custommagic.aenyr.{Aenyr, ResonanceAbility, VirtuosoAbility}
 import moe.lymia.xmage.CustomCard
 import moe.lymia.xmage.macros._
 
 @withCopy abstract class LifesongFlutist(ownerId: UUID)
   extends CustomCard(ownerId, Aenyr, "Lifesong Flutist", Rarity.COMMON, Array(CardType.CREATURE), "{W}") {
 
-  subtype.add("Human")
-  subtype.add("Bard")
-
-  power     = new MageInt(1)
-  toughness = new MageInt(1)
+  subtypes("Human", "Bard")
+  pt(1, 1)
 
   // Lifelink
-  addAbility(new LifelinkAbility)
+  addAbility(LifelinkAbility.getInstance())
 
   // Virtuoso — Whenever you cast a multicolored spell, target creature gets +2/+2 until end of turn.
   addAbility({
@@ -51,4 +49,25 @@ import moe.lymia.xmage.macros._
     ability.addTarget(new TargetCreaturePermanent())
     ability
   })
+}
+
+@withCopy abstract class InspiringBallad(ownerId: UUID)
+  extends CustomCard(ownerId, Aenyr, "Inspiring Ballad", Rarity.COMMON, Array(CardType.INSTANT), "{1}{W}") {
+
+  // Creatures you control get +1/+1 until end of turn.
+  getSpellAbility.addEffect(new BoostControlledEffect(1, 1, Duration.EndOfTurn))
+
+  // Resonance 3W
+  addAbility(new ResonanceAbility(this, "{3}{W}"))
+}
+
+@withCopy abstract class DeafeningBallad(ownerId: UUID)
+  extends CustomCard(ownerId, Aenyr, "Deafening Ballad", Rarity.COMMON, Array(CardType.SORCERY), "{1}{R}") {
+
+  // Up to two target creatures can’t block this turn.
+  getSpellAbility.addEffect(new CantBlockTargetEffect(Duration.EndOfTurn))
+  getSpellAbility.addTarget(new TargetCreaturePermanent(0, 2))
+
+  // Resonance 3R
+  addAbility(new ResonanceAbility(this, "{3}{R}"))
 }

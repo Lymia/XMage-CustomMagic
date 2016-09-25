@@ -22,6 +22,7 @@
 
 package moe.lymia.xmage;
 
+import mage.MageInt;
 import mage.cards.CardImpl;
 import mage.cards.ExpansionSet;
 import mage.constants.CardType;
@@ -50,5 +51,13 @@ public abstract class CustomCard extends CardImpl {
 
     public CustomCard(CardImpl card) {
         super(card);
+    }
+
+    protected void pt(int p, int t) {
+        power = new MageInt(p);
+        toughness = new MageInt(t);
+    }
+    protected void subtypes(String... subtypes) {
+        for(String subtype : subtypes) this.subtype.add(subtype);
     }
 }

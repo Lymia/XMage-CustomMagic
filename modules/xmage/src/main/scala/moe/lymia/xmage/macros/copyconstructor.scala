@@ -42,6 +42,7 @@ class withCopy extends StaticAnnotation {
 }
 
 // TODO: Support companion objects
+// TODO: Check for .copy() on objects in automatically generated copy constructor.
 object GenerateCopyImpl {
   def extendCopy(c: whitebox.Context)(annottees: c.Expr[Any]*) = impl(c)(true)(annottees : _*)
   def withCopy(c: whitebox.Context)(annottees: c.Expr[Any]*) = impl(c)(false)(annottees : _*)
@@ -88,7 +89,7 @@ object GenerateCopyImpl {
           case x => None
         }
         val bodyMethodDefs = body flatMap {
-          case x: DefDef => Some(x)
+          case x: DefDef if x.name != TermName("copy") => Some(x)
           case x => None
         }
         val initDefs = body flatMap {
