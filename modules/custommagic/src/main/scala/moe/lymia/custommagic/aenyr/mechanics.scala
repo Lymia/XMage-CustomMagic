@@ -73,22 +73,26 @@ object VirtuosoFilter extends FilterSpell("multicolored spell") {
 @withCopy class ResonanceAbilityReplacementEffect(colors: ObjectColor, abilities: SpellAbility)
   extends ReplacementEffectImpl(Duration.OneUse, Outcome.Benefit, false) {
 
-  this.staticText = "Resonance replacement effect"
+  this.layer = Layer.ColorChangingEffects_5 // Should be layer 6 too, but...
 
   override def replaceEvent(event: GameEvent, source: Ability, game: Game) = {
     val card = game.getCard(source.getSourceId)
-    val spell = game.getCard(event.getSourceId)
+    val spell = game.getStack.getSpell(event.getTargetId)
     val you = game.getPlayer(source.getControllerId)
 
-    if(game.getState.getZone(card.getId) == Zone.EXILED && spell != null) {
-      val owner = game.getPlayer(card.getOwnerId)
-      if(owner != null) owner.moveCards(card, Zone.GRAVEYARD, source, game)
-
-      if(you.chooseUse(Outcome.Benefit, "Would you like to add the Resonance effects?", source, game)) {
+    if(card != null && game.getState.getZone(source.getSourceId) == Zone.EXILED && spell != null) {
+      if(you.chooseUse(Outcome.Benefit, "Would you like to use "+card.getName+"'s resonance effect?", source, game)) {
         val spellColor = spell.getColor(game)
         spellColor.setColor(spellColor.union(colors))
-        game.getContinuousEffects.addEffect(new ResonanceAbilitySpliceEffect(event.getTargetId, abilities), source)
+
+        val spliced = abilities.copy()
+        spliced.setSpellAbilityType(SpellAbilityType.SPLICE)
+        spliced.setSourceId(spell.getSourceId)
+        spell.addSpellAbility(spliced)
       }
+
+      val owner = game.getPlayer(card.getOwnerId)
+      if(owner != null) owner.moveCards(card, Zone.GRAVEYARD, source, game)
     }
 
     used = true
@@ -96,41 +100,15 @@ object VirtuosoFilter extends FilterSpell("multicolored spell") {
   }
 
   override def applies(event: GameEvent, source: Ability, game: Game) =
+    game.getCard(source.getSourceId) != null &&
+    game.getState.getZone(source.getSourceId) == Zone.EXILED &&
     event.getPlayerId.equals(source.getControllerId) && {
-      val spell = game.getCard(event.getSourceId)
+      val spell = game.getStack.getSpell(event.getTargetId)
       spell != null && (spell.getCardType.contains(CardType.INSTANT) || spell.getCardType.contains(CardType.SORCERY))
     }
 
   override def checksEventType(gameEvent: GameEvent, game: Game) =
-    gameEvent.getType == GameEvent.EventType.CAST_SPELL
-
-  override def copy(): ContinuousEffect = ???
-}
-@withCopy class ResonanceAbilitySpliceEffect(targetSpell: UUID, abilities: SpellAbility)
-  extends ReplacementEffectImpl(Duration.OneUse, Outcome.Benefit, false) {
-
-  this.staticText = "Resonance splice effect"
-
-  override def replaceEvent(event: GameEvent, source: Ability, game: Game): Boolean = {
-    val spell = game.getStack.getSpell(event.getTargetId)
-
-    if(spell != null) {
-      val spliced = abilities.copy()
-      spliced.setSpellAbilityType(SpellAbilityType.SPLICE)
-      spliced.setSourceId(spell.getSourceId)
-      spell.addSpellAbility(spliced)
-    }
-
-    used = true
-    false
-  }
-
-  override def applies(gameEvent: GameEvent, source: Ability, game: Game) = {
-    gameEvent.getTargetId == targetSpell
-  }
-  override def checksEventType(gameEvent: GameEvent, game: Game): Boolean = {
     gameEvent.getType == GameEvent.EventType.CAST_SPELL_LATE
-  }
 
   override def copy(): ContinuousEffect = ???
 }
